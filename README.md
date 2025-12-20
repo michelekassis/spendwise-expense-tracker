@@ -1,25 +1,52 @@
-# spendwise-expense-tracker
 # SpendWise — Personal Expense Tracker
 
+SpendWise is a simple expense tracker application where users can record expenses and view basic summaries.
+This project is built to demonstrate DevOps practices: Docker containerization, Docker Compose orchestration, CI/CD automation, and Kubernetes deployment with persistent data using PostgreSQL.
+
+---
+
 ## Overview
-SpendWise is a simple expense tracker application where users can record expenses and view summaries.
-This project focuses on DevOps: Docker, Docker Compose, CI/CD, and Kubernetes, with persistent data using PostgreSQL.
+**Main features**
+- Create an expense (write to DB)
+- List expenses (read from DB)
+- Filter expenses by month (`YYYY-MM`)
+- Health endpoint (`/health`) for readiness/liveness probes
+
+---
 
 ## Architecture
-(TODO: add diagram)
 
-**Services**
-- Backend API (Node.js/Express)
-- Database (PostgreSQL)
+### Services
+- **API (Node.js + Express)**: REST endpoints for expenses
+- **Database (PostgreSQL)**: persistent storage for expenses
 
-## How to Run with Docker Compose
-(TODO)
+### Architecture diagram (Compose)
+```text
++--------------------+        HTTP         +----------------------+
+|  Client (Postman)  |  ---------------->  |  API (Express)       |
+|  http://localhost  |                    |  Port: 3000          |
++--------------------+                    +----------+-----------+
+                                                   |
+                                                   | SQL (internal Docker network)
+                                                   v
+                                        +--------------------------+
+                                        | PostgreSQL (db)          |
+                                        | Persistent Volume:       |
+                                        | db-data                  |
+                                        +--------------------------+
+---                                        
 
-## CI/CD Pipeline
-(TODO)
+## Run with Docker Compose
 
-## Kubernetes Deployment
-(TODO)
+### Prerequisites
+- Docker
+- Docker Compose
 
-## Database Design + Justification
-(TODO)
+---
+
+### 1) Create environment file
+
+Copy the example file and adjust if needed:
+
+```powershell
+Copy-Item .env.example .env
