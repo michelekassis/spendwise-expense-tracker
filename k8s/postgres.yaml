@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: spendwise-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spendwise-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spendwise-db
+  template:
+    metadata:
+      labels:
+        app: spendwise-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: spendwise-api-secret
+                  key: DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: spendwise-api-secret
+                  key: DB_PASSWORD
+            - name: POSTGRES_DB
+              value: "spendwise"
+          volumeMounts:
+            - name: db-storage
+              mountPath: /var/lib/postgresql/data
+            - name: db-init
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: db-storage
+          persistentVolumeClaim:
+            claimName: spendwise-db-pvc
+        - name: db-init
+          configMap:
+            name: spendwise-db-init
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spendwise-db
+spec:
+  selector:
+    app: spendwise-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+  type: ClusterIP
